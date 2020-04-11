@@ -74,6 +74,10 @@ func computeAndStore(rawTask []string) {
 				continue
 			}
 
+			if len(data) == 0 {
+				continue
+			}
+
 			h, err := ComputeHash(data)
 			if err != nil {
 				return
