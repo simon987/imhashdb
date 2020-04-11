@@ -26,9 +26,7 @@ var ImageSuffixes = []string{
 	".bmp", ".webp",
 }
 
-var ImageBlackList = []string{
-
-}
+var ImageBlackList = []string{}
 
 var Rdb *redis.Client
 var Pgdb *pgx.ConnPool
@@ -95,22 +93,6 @@ func TransformLink(link string, meta *[]Meta) []string {
 }
 func isHttpOk(code int) bool {
 	return code >= 200 && code < 300
-}
-
-func IsImageLink(link string) bool {
-	u, err := url.Parse(link)
-	if err != nil {
-		return false
-	}
-
-	path := strings.ToLower(u.Path)
-	for _, suffix := range ImageSuffixes {
-		if strings.HasSuffix(path, suffix) {
-			return true
-		}
-	}
-
-	return false
 }
 
 func FetchJson(link string, v interface{}, raw *[]byte, headers ...[]string) error {

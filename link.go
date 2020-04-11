@@ -2,7 +2,9 @@ package imhashdb
 
 import (
 	"go.uber.org/zap"
+	"net/url"
 	"regexp"
+	"strings"
 	"time"
 )
 
@@ -14,13 +16,34 @@ type ImgurImgResp struct {
 }
 
 type ImgurImg struct {
-	Link        string   `json:"link"`
+	Link string `json:"link"`
 }
 
 type ImgurAlbumResp struct {
 	Data struct {
-		Images      []ImgurImg `json:"images"`
+		Images []ImgurImg `json:"images"`
 	} `json:"data"`
+}
+
+func IsImageLink(link string) bool {
+
+	if strings.HasPrefix(link, "https://i.reddituploads.com") {
+		return true
+	}
+
+	u, err := url.Parse(link)
+	if err != nil {
+		return false
+	}
+
+	path := strings.ToLower(u.Path)
+	for _, suffix := range ImageSuffixes {
+		if strings.HasSuffix(path, suffix) {
+			return true
+		}
+	}
+
+	return false
 }
 
 func handleImgurLink(link string, meta *[]Meta) []string {
