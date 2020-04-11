@@ -195,7 +195,7 @@ func IsPermanentError(err error) bool {
 
 	if opErr.Timeout() {
 		// Usually means thalt there is no route to host
-		return !opErr.Temporary()
+		return true
 	}
 
 	switch t := opErr.Err.(type) {
