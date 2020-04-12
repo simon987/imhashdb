@@ -86,6 +86,10 @@ github.com/simon987/fastimagehash-go v0.0.0-20200411005122-1886a7c50720 h1:0VrGo
 github.com/simon987/fastimagehash-go v0.0.0-20200411005122-1886a7c50720/go.mod h1:MbqNG+6OaprdElEIes1aYF7qmLlaTop4j5X6pgNiaaw=
 github.com/simon987/fastimagehash-go v0.0.0-20200411154912-569fe641b1a7 h1:4XD2rCg4hJRcCZErDLp8lfMsHw5Zinr5e2t2C18GdzU=
 github.com/simon987/fastimagehash-go v0.0.0-20200411154912-569fe641b1a7/go.mod h1:fmgaZptm6M5Kn3Ctu/R5p2fncGYPpGi/raZCZUrkRsY=
+github.com/simon987/fastimagehash-go v0.0.0-20200412153922-bcfdf954b464 h1:5p3TX77zQoyrAJqrczYLmAo4F8U+dsyHylzZ3MH4sps=
+github.com/simon987/fastimagehash-go v0.0.0-20200412153922-bcfdf954b464/go.mod h1:fmgaZptm6M5Kn3Ctu/R5p2fncGYPpGi/raZCZUrkRsY=
+github.com/simon987/fastimagehash-go v0.0.0-20200412154506-b0e9d9b3a73e h1:8+cH+kriBBb9OqtKh/wNsr+PvV8e73yNjEly5wAjFQk=
+github.com/simon987/fastimagehash-go v0.0.0-20200412154506-b0e9d9b3a73e/go.mod h1:fmgaZptm6M5Kn3Ctu/R5p2fncGYPpGi/raZCZUrkRsY=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UVUgZn+9EI=
 github.com/stretchr/testify v1.4.0/go.mod h1:j7eGeouHqKxXV5pUuKE4zz7dFj8WfuZ+81PSLYec5m4=

@@ -45,35 +45,62 @@ func Init() {
 	DbInit(Pgdb)
 }
 
-func ComputeHash(data []byte) (*fastimagehash.MultiHash, error) {
-	h := &fastimagehash.MultiHash{}
+func ComputeHash(data []byte) (*Hashes, error) {
+	h := &Hashes{}
+	var code fastimagehash.Code
 
-	aHash, code := fastimagehash.AHashMem(data, 12)
-	if code != fastimagehash.Ok {
-		return nil, errors.Errorf("aHash error: %d", int(code))
-	}
-	dHash, code := fastimagehash.DHashMem(data, 12)
+	h.DHash8, code = fastimagehash.DHashMem(data, 8)
 	if code != fastimagehash.Ok {
 		return nil, errors.Errorf("dHash error: %d", int(code))
 	}
-	mHash, code := fastimagehash.MHashMem(data, 12)
+	h.DHash16, code = fastimagehash.DHashMem(data, 16)
 	if code != fastimagehash.Ok {
 		return nil, errors.Errorf("dHash error: %d", int(code))
 	}
-	pHash, code := fastimagehash.PHashMem(data, 12, 4)
+	h.DHash32, code = fastimagehash.DHashMem(data, 32)
+	if code != fastimagehash.Ok {
+		return nil, errors.Errorf("dHash error: %d", int(code))
+	}
+
+	h.MHash8, code = fastimagehash.MHashMem(data, 8)
+	if code != fastimagehash.Ok {
+		return nil, errors.Errorf("mHash error: %d", int(code))
+	}
+	h.MHash16, code = fastimagehash.MHashMem(data, 16)
+	if code != fastimagehash.Ok {
+		return nil, errors.Errorf("mHash error: %d", int(code))
+	}
+	h.MHash32, code = fastimagehash.MHashMem(data, 32)
+	if code != fastimagehash.Ok {
+		return nil, errors.Errorf("mHash error: %d", int(code))
+	}
+
+	h.PHash8, code = fastimagehash.PHashMem(data, 8, 4)
 	if code != fastimagehash.Ok {
 		return nil, errors.Errorf("pHash error: %d", int(code))
 	}
-	wHash, code := fastimagehash.WHashMem(data, 8, 0, fastimagehash.Haar)
+	h.PHash16, code = fastimagehash.PHashMem(data, 16, 4)
+	if code != fastimagehash.Ok {
+		return nil, errors.Errorf("pHash error: %d", int(code))
+	}
+	h.PHash32, code = fastimagehash.PHashMem(data, 32, 4)
+	if code != fastimagehash.Ok {
+		return nil, errors.Errorf("pHash error: %d", int(code))
+	}
+
+	h.WHash8, code = fastimagehash.WHashMem(data, 8, 0, fastimagehash.Haar)
+	if code != fastimagehash.Ok {
+		return nil, errors.Errorf("wHash error: %d", int(code))
+	}
+	h.WHash16, code = fastimagehash.WHashMem(data, 16, 0, fastimagehash.Haar)
+	if code != fastimagehash.Ok {
+		return nil, errors.Errorf("wHash error: %d", int(code))
+	}
+	h.WHash32, code = fastimagehash.WHashMem(data, 32, 0, fastimagehash.Haar)
 	if code != fastimagehash.Ok {
 		return nil, errors.Errorf("wHash error: %d", int(code))
 	}
 
-	h.AHash = *aHash
-	h.DHash = *dHash
-	h.MHash = *mHash
-	h.PHash = *pHash
-	h.WHash = *wHash
 	return h, nil
 }
 

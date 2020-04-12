@@ -6,22 +6,18 @@ import (
 	"crypto/sha1"
 	"crypto/sha256"
 	"errors"
+	"fmt"
 	"github.com/jackc/pgx"
 	"github.com/jackc/pgx/pgtype"
 	"github.com/mailru/easyjson"
-	"github.com/simon987/fastimagehash-go"
 	"go.uber.org/zap"
 )
 
-const MaxDistance = 30
+const MaxDistance = 100
 const MaxLimit = 1000
 
 type Entry struct {
-	AHash  *fastimagehash.Hash
-	DHash  *fastimagehash.Hash
-	MHash  *fastimagehash.Hash
-	PHash  *fastimagehash.Hash
-	WHash  *fastimagehash.Hash
+	H      *Hashes
 	Size   int
 	Sha1   [sha1.Size]byte
 	Md5    [md5.Size]byte
@@ -52,26 +48,21 @@ func Store(entry *Entry) {
 	}
 
 	if !imageExists {
-		_, err = Pgdb.Exec("INSERT INTO hash_ahash VALUES ($1, $2) ON CONFLICT DO NOTHING", id, entry.AHash.Bytes)
-		if err != nil {
-			Logger.Error("Could not insert ahash", zap.Error(err))
-		}
-		_, err = Pgdb.Exec("INSERT INTO hash_dhash VALUES ($1, $2) ON CONFLICT DO NOTHING", id, entry.DHash.Bytes)
-		if err != nil {
-			Logger.Error("Could not insert dhash", zap.Error(err))
-		}
-		_, err = Pgdb.Exec("INSERT INTO hash_mhash VALUES ($1, $2) ON CONFLICT DO NOTHING", id, entry.MHash.Bytes)
-		if err != nil {
-			Logger.Error("Could not insert mhash", zap.Error(err))
-		}
-		_, err = Pgdb.Exec("INSERT INTO hash_phash VALUES ($1, $2) ON CONFLICT DO NOTHING", id, entry.PHash.Bytes)
-		if err != nil {
-			Logger.Error("Could not insert phash", zap.Error(err))
-		}
-		_, err = Pgdb.Exec("INSERT INTO hash_whash VALUES ($1, $2) ON CONFLICT DO NOTHING", id, entry.WHash.Bytes)
-		if err != nil {
-			Logger.Error("Could not insert whash", zap.Error(err))
-		}
+		_, _ = Pgdb.Exec("INSERT INTO hash_dhash8 VALUES ($1, $2) ON CONFLICT DO NOTHING", id, entry.H.DHash8.Bytes)
+		_, _ = Pgdb.Exec("INSERT INTO hash_dhash16 VALUES ($1, $2) ON CONFLICT DO NOTHING", id, entry.H.DHash16.Bytes)
+		_, _ = Pgdb.Exec("INSERT INTO hash_dhash32 VALUES ($1, $2) ON CONFLICT DO NOTHING", id, entry.H.DHash32.Bytes)
+
+		_, _ = Pgdb.Exec("INSERT INTO hash_mhash8 VALUES ($1, $2) ON CONFLICT DO NOTHING", id, entry.H.MHash8.Bytes)
+		_, _ = Pgdb.Exec("INSERT INTO hash_mhash16 VALUES ($1, $2) ON CONFLICT DO NOTHING", id, entry.H.MHash16.Bytes)
+		_, _ = Pgdb.Exec("INSERT INTO hash_mhash32 VALUES ($1, $2) ON CONFLICT DO NOTHING", id, entry.H.MHash32.Bytes)
+
+		_, _ = Pgdb.Exec("INSERT INTO hash_phash8 VALUES ($1, $2) ON CONFLICT DO NOTHING", id, entry.H.PHash8.Bytes)
+		_, _ = Pgdb.Exec("INSERT INTO hash_phash16 VALUES ($1, $2) ON CONFLICT DO NOTHING", id, entry.H.PHash16.Bytes)
+		_, _ = Pgdb.Exec("INSERT INTO hash_phash32 VALUES ($1, $2) ON CONFLICT DO NOTHING", id, entry.H.PHash32.Bytes)
+
+		_, _ = Pgdb.Exec("INSERT INTO hash_whash8haar VALUES ($1, $2) ON CONFLICT DO NOTHING", id, entry.H.WHash8.Bytes)
+		_, _ = Pgdb.Exec("INSERT INTO hash_whash16haar VALUES ($1, $2) ON CONFLICT DO NOTHING", id, entry.H.WHash16.Bytes)
+		_, _ = Pgdb.Exec("INSERT INTO hash_whash32haar VALUES ($1, $2) ON CONFLICT DO NOTHING", id, entry.H.WHash32.Bytes)
 	}
 
 	for _, meta := range entry.Meta {
@@ -96,30 +87,36 @@ func Store(entry *Entry) {
 
 func isHashValid(hash []byte, hashType HashType) bool {
 	switch hashType {
-	case AHash12:
-		if len(hash) != 18 {
-			return false
-		}
-	case DHash12:
-		if len(hash) != 18 {
-			return false
-		}
-	case MHash12:
-		if len(hash) != 18 {
-			return false
-		}
-	case PHash12:
-		if len(hash) != 18 {
-			return false
-		}
+	case DHash8:
+		fallthrough
+	case MHash8:
+		fallthrough
+	case PHash8:
+		fallthrough
 	case WHash8Haar:
-		if len(hash) != 8 {
-			return false
-		}
+		return len(hash) == 8
+
+	case DHash16:
+		fallthrough
+	case MHash16:
+		fallthrough
+	case PHash16:
+		fallthrough
+	case WHash16Haar:
+		return len(hash) == 32
+
+	case DHash32:
+		fallthrough
+	case MHash32:
+		fallthrough
+	case PHash32:
+		fallthrough
+	case WHash32Haar:
+		return len(hash) == 128
+
 	default:
 		return false
 	}
-	return true
 }
 
 func FindImagesByHash(ctx context.Context, hash []byte, hashType HashType, distance, limit, offset uint) ([]byte, error) {
@@ -143,23 +140,11 @@ func FindImagesByHash(ctx context.Context, hash []byte, hashType HashType, dista
 	defer tx.Commit()
 
 	var sql string
-	switch hashType {
-	case AHash12:
-		sql = `SELECT image.* FROM image INNER JOIN hash_ahash h on image.id = h.image_id 
-				WHERE hash_is_within_distance18(h.hash, $1, $2) ORDER BY image.id LIMIT $3 OFFSET $4`
-	case DHash12:
-		sql = `SELECT image.* FROM image INNER JOIN hash_dhash h on image.id = h.image_id 
-				WHERE hash_is_within_distance18(h.hash, $1, $2) ORDER BY image.id LIMIT $3 OFFSET $4`
-	case MHash12:
-		sql = `SELECT image.* FROM image INNER JOIN hash_mhash h on image.id = h.image_id 
-				WHERE hash_is_within_distance18(h.hash, $1, $2) ORDER BY image.id LIMIT $3 OFFSET $4`
-	case PHash12:
-		sql = `SELECT image.* FROM image INNER JOIN hash_phash h on image.id = h.image_id 
-				WHERE hash_is_within_distance18(h.hash, $1, $2) ORDER BY image.id LIMIT $3 OFFSET $4`
-	case WHash8Haar:
-		sql = `SELECT image.* FROM image INNER JOIN hash_whash h on image.id = h.image_id 
-				WHERE hash_is_within_distance8(h.hash, $1, $2) ORDER BY image.id LIMIT $3 OFFSET $4`
-	}
+	sql = fmt.Sprintf(
+		`SELECT image.* FROM image INNER JOIN hash_%s h on image.id = h.image_id 
+				WHERE hash_is_within_distance%d(h.hash, $1, $2) 
+				ORDER BY image.id LIMIT $3 OFFSET $4`,
+		hashType, hashType.HashLength())
 
 	rows, err := tx.Query(sql, hash, distance, limit, offset)
 	if err != nil {
@@ -169,13 +154,17 @@ func FindImagesByHash(ctx context.Context, hash []byte, hashType HashType, dista
 	var images []*Image
 	for rows.Next() {
 		var im Image
-		err := rows.Scan(&im.id, &im.Size, &im.Sha1, &im.Md5, &im.Sha256, &im.Crc32)
+		err := rows.Scan(&im.id, &im.Crc32, &im.Size, &im.Sha1, &im.Md5, &im.Sha256)
 		if err != nil {
 			Logger.Error("Error while fetching db image", zap.String("err", err.Error()))
 			return nil, err
 		}
 
 		images = append(images, &im)
+	}
+
+	if images == nil {
+		return nil, nil
 	}
 
 	batch := tx.BeginBatch()
@@ -222,56 +211,33 @@ func DbInit(pool *pgx.ConnPool) {
 
 	sql := `
 CREATE TABLE IF NOT EXISTS image (
-	id BIGSERIAL PRIMARY KEY,
-	size INT,
-	sha1 bytea,
-	md5 bytea,
-	sha256 bytea,
-	crc32 bigint
+	id BIGSERIAL PRIMARY KEY NOT NULL,
+	crc32 bigint NOT NULL,
+	size INT NOT NULL,
+	sha1 bytea NOT NULL,
+	md5 bytea NOT NULL,
+	sha256 bytea NOT NULL
 );
 CREATE UNIQUE INDEX IF NOT EXISTS idx_image_sha1 ON image(sha1);
-CREATE INDEX IF NOT EXISTS idx_image_md5 ON image(md5);
-CREATE INDEX IF NOT EXISTS idx_image_sha256 ON image(sha256);
-CREATE INDEX IF NOT EXISTS idx_image_crc32 ON image(crc32);
 
 CREATE TABLE IF NOT EXISTS image_meta (
-	id TEXT UNIQUE,
-	retrieved_at bigint,
-	meta bytea
+	id TEXT UNIQUE NOT NULL,
+	retrieved_at bigint NOT NULL,
+	meta bytea NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS image_has_meta (
-	image_id bigint REFERENCES image(id),
-	url TEXT,
-	image_meta_id text REFERENCES image_meta(id),
+	image_id bigint REFERENCES image(id) NOT NULL,
+	url TEXT NOT NULL,
+	image_meta_id text REFERENCES image_meta(id) NOT NULL,
 	UNIQUE(image_id, image_meta_id)
 );
-
-CREATE TABLE IF NOT EXISTS hash_phash (
-	image_id BIGINT REFERENCES image(id) UNIQUE,
-    hash bytea
-);
-
-CREATE TABLE IF NOT EXISTS hash_ahash (
-	image_id BIGINT REFERENCES image(id) UNIQUE,
-    hash bytea
-);
-
-CREATE TABLE IF NOT EXISTS hash_dhash (
-	image_id BIGINT REFERENCES image(id) UNIQUE,
-    hash bytea
-);
-
-CREATE TABLE IF NOT EXISTS hash_mhash (
-	image_id BIGINT REFERENCES image(id) UNIQUE,
-    hash bytea
-);
-
-CREATE TABLE IF NOT EXISTS hash_whash (
-	image_id BIGINT REFERENCES image(id) UNIQUE,
-    hash bytea
-);
 `
+	for _, hashType := range HashTypes {
+		sql += fmt.Sprintf(`CREATE TABLE IF NOT EXISTS hash_%s (
+							image_id BIGINT REFERENCES image(id) UNIQUE NOT NULL,
+							hash bytea NOT NULL);`, hashType)
+	}
 
 	_, err := pool.Exec(sql)
 	if err != nil {

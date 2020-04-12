@@ -84,11 +84,7 @@ func computeAndStore(rawTask []string) {
 			}
 
 			Store(&Entry{
-				AHash:  &h.AHash,
-				DHash:  &h.DHash,
-				MHash:  &h.MHash,
-				PHash:  &h.PHash,
-				WHash:  &h.WHash,
+				H:      h,
 				Size:   len(data),
 				Sha256: sha256.Sum256(data),
 				Sha1:   sha1.Sum(data),

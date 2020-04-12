@@ -7,6 +7,7 @@ import (
 	easyjson "github.com/mailru/easyjson"
 	jlexer "github.com/mailru/easyjson/jlexer"
 	jwriter "github.com/mailru/easyjson/jwriter"
+	fastimagehash_go "github.com/simon987/fastimagehash-go"
 )
 
 // suppress unused package warning
@@ -599,7 +600,7 @@ func (v *Image) UnmarshalJSON(data []byte) error {
 func (v *Image) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjsonD2b7633eDecodeGithubComSimon987Imhashdb5(l, v)
 }
-func easyjsonD2b7633eDecodeGithubComSimon987Imhashdb6(in *jlexer.Lexer, out *HashResp) {
+func easyjsonD2b7633eDecodeGithubComSimon987Imhashdb6(in *jlexer.Lexer, out *Hashes) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -618,40 +619,125 @@ func easyjsonD2b7633eDecodeGithubComSimon987Imhashdb6(in *jlexer.Lexer, out *Has
 			continue
 		}
 		switch key {
-		case "ahash:12":
+		case "dhash8":
 			if in.IsNull() {
 				in.Skip()
-				out.AHash = nil
+				out.DHash8 = nil
 			} else {
-				out.AHash = in.Bytes()
+				if out.DHash8 == nil {
+					out.DHash8 = new(fastimagehash_go.Hash)
+				}
+				easyjsonD2b7633eDecodeGithubComSimon987FastimagehashGo(in, out.DHash8)
 			}
-		case "dhash:12":
+		case "dhash16":
 			if in.IsNull() {
 				in.Skip()
-				out.DHash = nil
+				out.DHash16 = nil
 			} else {
-				out.DHash = in.Bytes()
+				if out.DHash16 == nil {
+					out.DHash16 = new(fastimagehash_go.Hash)
+				}
+				easyjsonD2b7633eDecodeGithubComSimon987FastimagehashGo(in, out.DHash16)
 			}
-		case "mhash:12":
+		case "dhash32":
 			if in.IsNull() {
 				in.Skip()
-				out.MHash = nil
+				out.DHash32 = nil
 			} else {
-				out.MHash = in.Bytes()
+				if out.DHash32 == nil {
+					out.DHash32 = new(fastimagehash_go.Hash)
+				}
+				easyjsonD2b7633eDecodeGithubComSimon987FastimagehashGo(in, out.DHash32)
 			}
-		case "phash:12:4":
+		case "mhash8":
 			if in.IsNull() {
 				in.Skip()
-				out.PHash = nil
+				out.MHash8 = nil
 			} else {
-				out.PHash = in.Bytes()
+				if out.MHash8 == nil {
+					out.MHash8 = new(fastimagehash_go.Hash)
+				}
+				easyjsonD2b7633eDecodeGithubComSimon987FastimagehashGo(in, out.MHash8)
 			}
-		case "whash:18:haar":
+		case "mhash16":
 			if in.IsNull() {
 				in.Skip()
-				out.WHash = nil
+				out.MHash16 = nil
 			} else {
-				out.WHash = in.Bytes()
+				if out.MHash16 == nil {
+					out.MHash16 = new(fastimagehash_go.Hash)
+				}
+				easyjsonD2b7633eDecodeGithubComSimon987FastimagehashGo(in, out.MHash16)
+			}
+		case "mhash32":
+			if in.IsNull() {
+				in.Skip()
+				out.MHash32 = nil
+			} else {
+				if out.MHash32 == nil {
+					out.MHash32 = new(fastimagehash_go.Hash)
+				}
+				easyjsonD2b7633eDecodeGithubComSimon987FastimagehashGo(in, out.MHash32)
+			}
+		case "phash8":
+			if in.IsNull() {
+				in.Skip()
+				out.PHash8 = nil
+			} else {
+				if out.PHash8 == nil {
+					out.PHash8 = new(fastimagehash_go.Hash)
+				}
+				easyjsonD2b7633eDecodeGithubComSimon987FastimagehashGo(in, out.PHash8)
+			}
+		case "phash16":
+			if in.IsNull() {
+				in.Skip()
+				out.PHash16 = nil
+			} else {
+				if out.PHash16 == nil {
+					out.PHash16 = new(fastimagehash_go.Hash)
+				}
+				easyjsonD2b7633eDecodeGithubComSimon987FastimagehashGo(in, out.PHash16)
+			}
+		case "phash32":
+			if in.IsNull() {
+				in.Skip()
+				out.PHash32 = nil
+			} else {
+				if out.PHash32 == nil {
+					out.PHash32 = new(fastimagehash_go.Hash)
+				}
+				easyjsonD2b7633eDecodeGithubComSimon987FastimagehashGo(in, out.PHash32)
+			}
+		case "whash8haar":
+			if in.IsNull() {
+				in.Skip()
+				out.WHash8 = nil
+			} else {
+				if out.WHash8 == nil {
+					out.WHash8 = new(fastimagehash_go.Hash)
+				}
+				easyjsonD2b7633eDecodeGithubComSimon987FastimagehashGo(in, out.WHash8)
+			}
+		case "whash16haar":
+			if in.IsNull() {
+				in.Skip()
+				out.WHash16 = nil
+			} else {
+				if out.WHash16 == nil {
+					out.WHash16 = new(fastimagehash_go.Hash)
+				}
+				easyjsonD2b7633eDecodeGithubComSimon987FastimagehashGo(in, out.WHash16)
+			}
+		case "whash32haar":
+			if in.IsNull() {
+				in.Skip()
+				out.WHash32 = nil
+			} else {
+				if out.WHash32 == nil {
+					out.WHash32 = new(fastimagehash_go.Hash)
+				}
+				easyjsonD2b7633eDecodeGithubComSimon987FastimagehashGo(in, out.WHash32)
 			}
 		default:
 			in.SkipRecursive()
@@ -663,60 +749,197 @@ func easyjsonD2b7633eDecodeGithubComSimon987Imhashdb6(in *jlexer.Lexer, out *Has
 		in.Consumed()
 	}
 }
-func easyjsonD2b7633eEncodeGithubComSimon987Imhashdb6(out *jwriter.Writer, in HashResp) {
+func easyjsonD2b7633eEncodeGithubComSimon987Imhashdb6(out *jwriter.Writer, in Hashes) {
 	out.RawByte('{')
 	first := true
 	_ = first
 	{
-		const prefix string = ",\"ahash:12\":"
+		const prefix string = ",\"dhash8\":"
 		out.RawString(prefix[1:])
-		out.Base64Bytes(in.AHash)
+		if in.DHash8 == nil {
+			out.RawString("null")
+		} else {
+			easyjsonD2b7633eEncodeGithubComSimon987FastimagehashGo(out, *in.DHash8)
+		}
 	}
 	{
-		const prefix string = ",\"dhash:12\":"
+		const prefix string = ",\"dhash16\":"
 		out.RawString(prefix)
-		out.Base64Bytes(in.DHash)
+		if in.DHash16 == nil {
+			out.RawString("null")
+		} else {
+			easyjsonD2b7633eEncodeGithubComSimon987FastimagehashGo(out, *in.DHash16)
+		}
 	}
 	{
-		const prefix string = ",\"mhash:12\":"
+		const prefix string = ",\"dhash32\":"
 		out.RawString(prefix)
-		out.Base64Bytes(in.MHash)
+		if in.DHash32 == nil {
+			out.RawString("null")
+		} else {
+			easyjsonD2b7633eEncodeGithubComSimon987FastimagehashGo(out, *in.DHash32)
+		}
 	}
 	{
-		const prefix string = ",\"phash:12:4\":"
+		const prefix string = ",\"mhash8\":"
 		out.RawString(prefix)
-		out.Base64Bytes(in.PHash)
+		if in.MHash8 == nil {
+			out.RawString("null")
+		} else {
+			easyjsonD2b7633eEncodeGithubComSimon987FastimagehashGo(out, *in.MHash8)
+		}
 	}
 	{
-		const prefix string = ",\"whash:18:haar\":"
+		const prefix string = ",\"mhash16\":"
 		out.RawString(prefix)
-		out.Base64Bytes(in.WHash)
+		if in.MHash16 == nil {
+			out.RawString("null")
+		} else {
+			easyjsonD2b7633eEncodeGithubComSimon987FastimagehashGo(out, *in.MHash16)
+		}
+	}
+	{
+		const prefix string = ",\"mhash32\":"
+		out.RawString(prefix)
+		if in.MHash32 == nil {
+			out.RawString("null")
+		} else {
+			easyjsonD2b7633eEncodeGithubComSimon987FastimagehashGo(out, *in.MHash32)
+		}
+	}
+	{
+		const prefix string = ",\"phash8\":"
+		out.RawString(prefix)
+		if in.PHash8 == nil {
+			out.RawString("null")
+		} else {
+			easyjsonD2b7633eEncodeGithubComSimon987FastimagehashGo(out, *in.PHash8)
+		}
+	}
+	{
+		const prefix string = ",\"phash16\":"
+		out.RawString(prefix)
+		if in.PHash16 == nil {
+			out.RawString("null")
+		} else {
+			easyjsonD2b7633eEncodeGithubComSimon987FastimagehashGo(out, *in.PHash16)
+		}
+	}
+	{
+		const prefix string = ",\"phash32\":"
+		out.RawString(prefix)
+		if in.PHash32 == nil {
+			out.RawString("null")
+		} else {
+			easyjsonD2b7633eEncodeGithubComSimon987FastimagehashGo(out, *in.PHash32)
+		}
+	}
+	{
+		const prefix string = ",\"whash8haar\":"
+		out.RawString(prefix)
+		if in.WHash8 == nil {
+			out.RawString("null")
+		} else {
+			easyjsonD2b7633eEncodeGithubComSimon987FastimagehashGo(out, *in.WHash8)
+		}
+	}
+	{
+		const prefix string = ",\"whash16haar\":"
+		out.RawString(prefix)
+		if in.WHash16 == nil {
+			out.RawString("null")
+		} else {
+			easyjsonD2b7633eEncodeGithubComSimon987FastimagehashGo(out, *in.WHash16)
+		}
+	}
+	{
+		const prefix string = ",\"whash32haar\":"
+		out.RawString(prefix)
+		if in.WHash32 == nil {
+			out.RawString("null")
+		} else {
+			easyjsonD2b7633eEncodeGithubComSimon987FastimagehashGo(out, *in.WHash32)
+		}
 	}
 	out.RawByte('}')
 }
 
 // MarshalJSON supports json.Marshaler interface
-func (v HashResp) MarshalJSON() ([]byte, error) {
+func (v Hashes) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
 	easyjsonD2b7633eEncodeGithubComSimon987Imhashdb6(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
-func (v HashResp) MarshalEasyJSON(w *jwriter.Writer) {
+func (v Hashes) MarshalEasyJSON(w *jwriter.Writer) {
 	easyjsonD2b7633eEncodeGithubComSimon987Imhashdb6(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
-func (v *HashResp) UnmarshalJSON(data []byte) error {
+func (v *Hashes) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
 	easyjsonD2b7633eDecodeGithubComSimon987Imhashdb6(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
-func (v *HashResp) UnmarshalEasyJSON(l *jlexer.Lexer) {
+func (v *Hashes) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjsonD2b7633eDecodeGithubComSimon987Imhashdb6(l, v)
+}
+func easyjsonD2b7633eDecodeGithubComSimon987FastimagehashGo(in *jlexer.Lexer, out *fastimagehash_go.Hash) {
+	isTopLevel := in.IsStart()
+	if in.IsNull() {
+		if isTopLevel {
+			in.Consumed()
+		}
+		in.Skip()
+		return
+	}
+	in.Delim('{')
+	for !in.IsDelim('}') {
+		key := in.UnsafeString()
+		in.WantColon()
+		if in.IsNull() {
+			in.Skip()
+			in.WantComma()
+			continue
+		}
+		switch key {
+		case "Size":
+			out.Size = int(in.Int())
+		case "Bytes":
+			if in.IsNull() {
+				in.Skip()
+				out.Bytes = nil
+			} else {
+				out.Bytes = in.Bytes()
+			}
+		default:
+			in.SkipRecursive()
+		}
+		in.WantComma()
+	}
+	in.Delim('}')
+	if isTopLevel {
+		in.Consumed()
+	}
+}
+func easyjsonD2b7633eEncodeGithubComSimon987FastimagehashGo(out *jwriter.Writer, in fastimagehash_go.Hash) {
+	out.RawByte('{')
+	first := true
+	_ = first
+	{
+		const prefix string = ",\"Size\":"
+		out.RawString(prefix[1:])
+		out.Int(int(in.Size))
+	}
+	{
+		const prefix string = ",\"Bytes\":"
+		out.RawString(prefix)
+		out.Base64Bytes(in.Bytes)
+	}
+	out.RawByte('}')
 }
 func easyjsonD2b7633eDecodeGithubComSimon987Imhashdb7(in *jlexer.Lexer, out *HashReq) {
 	isTopLevel := in.IsStart()

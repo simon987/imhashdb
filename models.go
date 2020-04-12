@@ -1,25 +1,86 @@
 package imhashdb
 
+import "github.com/simon987/fastimagehash-go"
+
 type HashType string
 
 const (
-	AHash12    HashType = "ahash:12"
-	DHash12    HashType = "dhash:12"
-	MHash12    HashType = "mhash:12"
-	PHash12    HashType = "phaash:12:4"
-	WHash8Haar HashType = "whash:8:haar"
+	DHash8  HashType = "dhash8"
+	DHash16 HashType = "dhash16"
+	DHash32 HashType = "dhash32"
+
+	MHash8  HashType = "mhash8"
+	MHash16 HashType = "mhash16"
+	MHash32 HashType = "mhash32"
+
+	PHash8  HashType = "phash8"
+	PHash16 HashType = "phash16"
+	PHash32 HashType = "phash32"
+
+	WHash8Haar  HashType = "whash8haar"
+	WHash16Haar HashType = "whash16haar"
+	WHash32Haar HashType = "whash32haar"
 )
+
+var HashTypes = []HashType{
+	DHash8, DHash16, DHash32,
+	MHash8, MHash16, MHash32,
+	PHash8, PHash16, PHash32,
+	WHash8Haar, WHash16Haar, WHash32Haar,
+}
+
+func (h HashType) HashLength() int {
+	switch h {
+	case DHash8:
+		fallthrough
+	case MHash8:
+		fallthrough
+	case PHash8:
+		fallthrough
+	case WHash8Haar:
+		return 8
+
+	case DHash16:
+		fallthrough
+	case MHash16:
+		fallthrough
+	case PHash16:
+		fallthrough
+	case WHash16Haar:
+		return 32
+
+	case DHash32:
+		fallthrough
+	case MHash32:
+		fallthrough
+	case PHash32:
+		fallthrough
+	case WHash32Haar:
+		return 128
+	default:
+		panic("Invalid invalid hash")
+	}
+}
 
 type HashReq struct {
 	Data []byte `json:"data"`
 }
+type Hashes struct {
+	DHash8  *fastimagehash.Hash `json:"dhash8"`
+	DHash16 *fastimagehash.Hash `json:"dhash16"`
+	DHash32 *fastimagehash.Hash `json:"dhash32"`
 
-type HashResp struct {
-	AHash []byte `json:"ahash:12"`
-	DHash []byte `json:"dhash:12"`
-	MHash []byte `json:"mhash:12"`
-	PHash []byte `json:"phash:12:4"`
-	WHash []byte `json:"whash:18:haar"`
+	MHash8  *fastimagehash.Hash `json:"mhash8"`
+	MHash16 *fastimagehash.Hash `json:"mhash16"`
+	MHash32 *fastimagehash.Hash `json:"mhash32"`
+
+	PHash8  *fastimagehash.Hash `json:"phash8"`
+	PHash16 *fastimagehash.Hash `json:"phash16"`
+	PHash32 *fastimagehash.Hash `json:"phash32"`
+
+	WHash8  *fastimagehash.Hash `json:"whash8haar"`
+	WHash16 *fastimagehash.Hash `json:"whash16haar"`
+	WHash32 *fastimagehash.Hash `json:"whash32haar"`
 }
 
 type QueryReq struct {
@@ -35,7 +96,7 @@ type ImageList struct {
 }
 
 type QueryResp struct {
-	Err      string `json:"err,omitempty"`
+	Err string `json:"err,omitempty"`
 }
 
 type Meta struct {
