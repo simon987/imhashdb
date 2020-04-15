@@ -906,9 +906,9 @@ func easyjsonD2b7633eDecodeGithubComSimon987FastimagehashGo(in *jlexer.Lexer, ou
 			continue
 		}
 		switch key {
-		case "Size":
+		case "size":
 			out.Size = int(in.Int())
-		case "Bytes":
+		case "bytes":
 			if in.IsNull() {
 				in.Skip()
 				out.Bytes = nil
@@ -930,12 +930,12 @@ func easyjsonD2b7633eEncodeGithubComSimon987FastimagehashGo(out *jwriter.Writer,
 	first := true
 	_ = first
 	{
-		const prefix string = ",\"Size\":"
+		const prefix string = ",\"size\":"
 		out.RawString(prefix[1:])
 		out.Int(int(in.Size))
 	}
 	{
-		const prefix string = ",\"Bytes\":"
+		const prefix string = ",\"bytes\":"
 		out.RawString(prefix)
 		out.Base64Bytes(in.Bytes)
 	}

@@ -48,6 +48,10 @@ func IsImageLink(link string) bool {
 
 func handleImgurLink(link string, meta *[]Meta) []string {
 
+	if strings.HasPrefix(link, "https://imgur.fun/") {
+		link = strings.Replace(link, "imgur.fun", "imgur.com", 1)
+	}
+
 	if ReImgurImg.MatchString(link) {
 		id := ReImgurImg.FindStringSubmatch(link)[1]
 
@@ -56,7 +60,7 @@ func handleImgurLink(link string, meta *[]Meta) []string {
 		err := FetchJson(
 			"https://api.imgur.com/3/image/"+id,
 			&img, &rawJson,
-			[]string{"Authorization", "Client-Id 546c25a59c58ad7"},
+			[]string{"Authorization", "Client-Id " + Conf.ImgurClientId},
 		)
 		if err != nil {
 			return nil
@@ -75,7 +79,7 @@ func handleImgurLink(link string, meta *[]Meta) []string {
 		err := FetchJson(
 			"https://api.imgur.com/3/album/"+id,
 			&album, &rawJson,
-			[]string{"Authorization", "Client-Id 546c25a59c58ad7"},
+			[]string{"Authorization", "Client-Id " + Conf.ImgurClientId},
 		)
 		if err != nil {
 			return nil

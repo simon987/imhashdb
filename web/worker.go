@@ -1,4 +1,4 @@
-package main
+package api
 
 import (
 	"context"
@@ -17,7 +17,7 @@ const CacheLength = time.Second * 30
 func queryWorker() {
 	Logger.Info("Query worker started")
 	for {
-		value := Rdb.BZPopMin(time.Second * 30, inQueue).Val()
+		value := Rdb.BZPopMin(time.Second*30, inQueue).Val()
 		if value == nil {
 			continue
 		}
@@ -38,13 +38,13 @@ func queryWorker() {
 			Logger.Info("worker query done")
 			b = resp
 		}
-		Rdb.Set(outQueue + member, b, CacheLength)
+		Rdb.Set(outQueue+member, b, CacheLength)
 	}
 }
 
 func dbQuery(req QueryReq, value string) ([]byte, error) {
 	Rdb.SAdd(wipQueue, value)
-	Rdb.Expire(wipQueue, time.Minute * 10)
+	Rdb.Expire(wipQueue, time.Minute*10)
 
 	defer Rdb.SRem(wipQueue, value)
 

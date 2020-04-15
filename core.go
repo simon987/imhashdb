@@ -8,17 +8,11 @@ import (
 	"github.com/simon987/fastimagehash-go"
 	"github.com/valyala/fasthttp"
 	"go.uber.org/zap"
-	"log"
-	"net"
-	"net/url"
-	"os"
 	"strings"
-	"syscall"
 )
 
 const RedisPrefix = "q."
 const UserAgent = "imhashdb/v1.0"
-const Concurrency = 4
 
 var ImageSuffixes = []string{
 	".jpeg", ".jpg", ".png",
@@ -26,22 +20,53 @@ var ImageSuffixes = []string{
 	".bmp", ".webp",
 }
 
+type Config struct {
+	PgUser     string
+	PgPassword string
+	PgDb       string
+	PgHost     string
+	PgPort     int
+
+	RedisAddr     string
+	RedisPassword string
+	RedisDb       int
+
+	ApiAddr string
+
+	HasherConcurrency int
+	QueryConcurrency  int
+
+	ImgurClientId string
+	HasherPattern string
+}
+
 var ImageBlackList = []string{}
 
 var Rdb *redis.Client
 var Pgdb *pgx.ConnPool
 var Logger *zap.Logger
+var Conf Config
 
 func Init() {
 	Logger, _ = zap.NewDevelopment()
 
 	Rdb = redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
-		Password: "",
-		DB:       0,
+		Addr:     Conf.RedisAddr,
+		Password: Conf.RedisPassword,
+		DB:       Conf.RedisDb,
 	})
+	_, err := Rdb.Ping().Result()
+	if err != nil {
+		Logger.Fatal("Could not connect to redis server")
+	}
 
-	Pgdb = DbConnect("localhost", 5432, "imhashdb", "imhashdb", "imhashdb")
+	Pgdb = DbConnect(
+		Conf.PgHost,
+		Conf.PgPort,
+		Conf.PgUser,
+		Conf.PgPassword,
+		Conf.PgDb,
+	)
 	DbInit(Pgdb)
 }
 
@@ -183,66 +208,4 @@ func Fetch(link string, headers ...[]string) ([]byte, error) {
 	)
 
 	return body, nil
-}
-
-func IsPermanentError(err error) bool {
-
-	if strings.HasPrefix(err.Error(), "HTTP") {
-		//TODO: Handle http 429 etc?
-		return true
-	}
-
-	var opErr *net.OpError
-
-	urlErr, ok := err.(*url.Error)
-	if ok {
-		opErr, ok = urlErr.Err.(*net.OpError)
-		if !ok {
-			if urlErr.Err != nil && urlErr.Err.Error() == "Proxy Authentication Required" {
-				return true
-			}
-			return false
-		}
-
-		if opErr.Err.Error() == "Internal Privoxy Error" {
-			return true
-		}
-
-	} else {
-		_, ok := err.(net.Error)
-		if ok {
-			_, ok := err.(*net.DNSError)
-			return ok
-		}
-	}
-
-	if opErr == nil {
-		return false
-	}
-
-	if opErr.Timeout() {
-		// Usually means thalt there is no route to host
-		return true
-	}
-
-	switch t := opErr.Err.(type) {
-	case *net.DNSError:
-		return true
-	case *os.SyscallError:
-		if errno, ok := t.Err.(syscall.Errno); ok {
-			switch errno {
-			case syscall.ECONNREFUSED:
-				log.Println("connect refused")
-				return true
-			case syscall.ETIMEDOUT:
-				log.Println("timeout")
-				return false
-			case syscall.ECONNRESET:
-				log.Println("connection reset by peer")
-				return false
-			}
-		}
-	}
-
-	return false
 }

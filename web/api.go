@@ -1,16 +1,12 @@
-package main
+package api
 
 import (
 	"context"
 	"errors"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v7"
 	"github.com/mailru/easyjson"
 	. "github.com/simon987/imhashdb"
-	"log"
-	"os"
-	"runtime/pprof"
 	"time"
 )
 
@@ -112,28 +108,15 @@ func hash(c *gin.Context) {
 	c.Data(200, gin.MIMEJSON, b)
 }
 
-func main() {
-	Init()
-
-	f, err := os.Create("prof")
-	if err != nil {
-		log.Fatal(err)
-	}
-	pprof.StartCPUProfile(f)
-	go func() {
-		time.Sleep(time.Second * 15)
-		pprof.StopCPUProfile()
-		fmt.Println("!!!!!!!!!!!!!!!")
-		f.Close()
-	}()
-
+func Main() error {
 	r := gin.Default()
 	r.Use(CORSMiddleware())
 	r.POST("/api/hash", hash)
 	r.POST("/api/query", query)
 
-	//TODO: concurrency
-	go queryWorker()
+	for i := 0; i < Conf.QueryConcurrency; i++ {
+		go queryWorker()
+	}
 
-	r.Run()
+	return r.Run(Conf.ApiAddr)
 }
