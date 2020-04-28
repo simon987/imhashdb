@@ -10,6 +10,7 @@ import (
 	"github.com/jackc/pgx"
 	"github.com/jackc/pgx/pgtype"
 	"github.com/mailru/easyjson"
+	"github.com/valyala/gozstd"
 	"go.uber.org/zap"
 )
 
@@ -25,6 +26,30 @@ type Entry struct {
 	Crc32  uint32
 	Meta   []Meta
 	Url    string
+}
+
+type MatchTrigger struct {
+	HashType    HashType
+	MinDistance int
+	Id          int
+}
+
+var MatchTriggers = []MatchTrigger{
+	{
+		HashType:    DHash16,
+		MinDistance: 25,
+		Id:          1,
+	},
+	{
+		HashType:    PHash16,
+		MinDistance: 25,
+		Id:          2,
+	},
+	{
+		HashType:    WHash16Haar,
+		MinDistance: 6,
+		Id:          3,
+	},
 }
 
 func Store(entry *Entry) {
@@ -48,7 +73,10 @@ func Store(entry *Entry) {
 	}
 
 	if !imageExists {
-		_, _ = Pgdb.Exec("INSERT INTO hash_dhash8 VALUES ($1, $2) ON CONFLICT DO NOTHING", id, entry.H.DHash8.Bytes)
+		_, err = Pgdb.Exec("INSERT INTO hash_dhash8 VALUES ($1, $2) ON CONFLICT DO NOTHING", id, entry.H.DHash8.Bytes)
+		if err != nil {
+			panic(err)
+		}
 		_, _ = Pgdb.Exec("INSERT INTO hash_dhash16 VALUES ($1, $2) ON CONFLICT DO NOTHING", id, entry.H.DHash16.Bytes)
 		_, _ = Pgdb.Exec("INSERT INTO hash_dhash32 VALUES ($1, $2) ON CONFLICT DO NOTHING", id, entry.H.DHash32.Bytes)
 
@@ -65,10 +93,13 @@ func Store(entry *Entry) {
 		_, _ = Pgdb.Exec("INSERT INTO hash_whash32haar VALUES ($1, $2) ON CONFLICT DO NOTHING", id, entry.H.WHash32.Bytes)
 	}
 
+	var buf []byte
 	for _, meta := range entry.Meta {
+		compressedMeta := gozstd.CompressDict(buf[:0], meta.Meta, CDict)
+
 		_, err = Pgdb.Exec(
-			"INSERT INTO image_meta VALUES ($1, $2, $3) ON CONFLICT DO NOTHING",
-			meta.Id, meta.RetrievedAt, meta.Meta,
+			"INSERT INTO image_meta (id, retrieved_at, meta) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING",
+			meta.Id, meta.RetrievedAt, compressedMeta,
 		)
 		if err != nil {
 			Logger.Error("Could not insert meta", zap.Error(err))
@@ -164,7 +195,8 @@ func FindImagesByHash(ctx context.Context, hash []byte, hashType HashType, dista
 	}
 
 	if images == nil {
-		return nil, nil
+		b, _ := easyjson.Marshal(ImageList{Images: []*Image{}})
+		return b, nil
 	}
 
 	batch := tx.BeginBatch()
@@ -195,7 +227,11 @@ func FindImagesByHash(ctx context.Context, hash []byte, hashType HashType, dista
 
 		for rows.Next() {
 			var ihm ImageHasMeta
-			err := rows.Scan(&ihm.Url, &ihm.Meta.Id, &ihm.Meta.RetrievedAt, &ihm.Meta.Meta)
+
+			var compressedMeta []byte
+			err := rows.Scan(&ihm.Url, &ihm.Meta.Id, &ihm.Meta.RetrievedAt, &compressedMeta)
+
+			ihm.Meta.Meta, err = gozstd.DecompressDict(nil, compressedMeta, DDict)
 			if err != nil {
 				return nil, err
 			}
@@ -221,8 +257,8 @@ CREATE TABLE IF NOT EXISTS image (
 CREATE UNIQUE INDEX IF NOT EXISTS idx_image_sha1 ON image(sha1);
 
 CREATE TABLE IF NOT EXISTS image_meta (
-	id TEXT UNIQUE NOT NULL,
 	retrieved_at bigint NOT NULL,
+	id TEXT PRIMARY KEY,
 	meta bytea NOT NULL
 );
 
@@ -232,11 +268,36 @@ CREATE TABLE IF NOT EXISTS image_has_meta (
 	image_meta_id text REFERENCES image_meta(id) NOT NULL,
 	UNIQUE(image_id, image_meta_id)
 );
+
+CREATE TABLE IF NOT EXISTS matchlist (
+	id smallint,
+	distance smallint NOT NULL,
+	im1 bigint NOT NULL,
+	im2 bigint NOT NULL
+);
 `
 	for _, hashType := range HashTypes {
 		sql += fmt.Sprintf(`CREATE TABLE IF NOT EXISTS hash_%s (
 							image_id BIGINT REFERENCES image(id) UNIQUE NOT NULL,
 							hash bytea NOT NULL);`, hashType)
+	}
+
+	for _, trigger := range MatchTriggers {
+		sql += fmt.Sprintf(`
+CREATE OR REPLACE FUNCTION on_%s_insert() RETURNS TRIGGER AS $$
+BEGIN
+	INSERT INTO matchlist (id, distance, im1, im2) 
+		SELECT %d, hash_distance%d(hash, NEW.hash), NEW.image_id, image_id FROM hash_%s AS h
+			WHERE h.image_id != NEW.image_id AND hash_is_within_distance%d(hash, NEW.hash, %d);
+    RETURN NEW;
+END;
+$$ LANGUAGE 'plpgsql';
+DROP TRIGGER IF EXISTS on_%s_insert ON hash_%s;
+CREATE TRIGGER on_%s_insert AFTER INSERT ON hash_%s
+FOR EACH ROW EXECUTE PROCEDURE on_%s_insert();`,
+			trigger.HashType, trigger.Id, trigger.HashType.HashLength(), trigger.HashType,
+			trigger.HashType.HashLength(), trigger.MinDistance, trigger.HashType,
+			trigger.HashType, trigger.HashType, trigger.HashType, trigger.HashType)
 	}
 
 	_, err := pool.Exec(sql)

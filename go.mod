@@ -22,16 +22,17 @@ require (
 	github.com/onsi/gomega v1.9.0 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/shopspring/decimal v0.0.0-20200227202807-02e2044944cc // indirect
-	github.com/simon987/fastimagehash-go v0.0.0-20200412174912-bee8c91bb52e
+	github.com/simon987/fastimagehash-go v0.0.0-20200426185525-dad3269c77a9
 	github.com/stretchr/testify v1.5.1 // indirect
 	github.com/urfave/cli/v2 v2.2.0
 	github.com/valyala/fasthttp v1.9.0
+	github.com/valyala/gozstd v1.7.0
 	go.uber.org/zap v1.14.1
 	golang.org/x/crypto v0.0.0-20200406173513-056763e48d71 // indirect
 	golang.org/x/lint v0.0.0-20200302205851-738671d3881b // indirect
 	golang.org/x/net v0.0.0-20200324143707-d3edc9973b7e // indirect
 	golang.org/x/sys v0.0.0-20200409092240-59c9f1ba88fa // indirect
-	golang.org/x/tools v0.0.0-20200410194907-79a7a3126eef // indirect
+	golang.org/x/tools v0.0.0-20200425043458-8463f397d07c // indirect
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
 	honnef.co/go/tools v0.0.1-2020.1.3 // indirect
 )

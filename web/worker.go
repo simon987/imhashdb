@@ -12,7 +12,7 @@ const inQueue = "qq:in"
 const outQueue = "qq:out:"
 const wipQueue = "qq:wip"
 
-const CacheLength = time.Second * 30
+const CacheLength = time.Second * 5
 
 func queryWorker() {
 	Logger.Info("Query worker started")

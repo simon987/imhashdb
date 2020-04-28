@@ -7,6 +7,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/simon987/fastimagehash-go"
 	"github.com/valyala/fasthttp"
+	"github.com/valyala/gozstd"
 	"go.uber.org/zap"
 	"strings"
 )
@@ -44,6 +45,8 @@ var ImageBlackList = []string{}
 
 var Rdb *redis.Client
 var Pgdb *pgx.ConnPool
+var CDict *gozstd.CDict
+var DDict *gozstd.DDict
 var Logger *zap.Logger
 var Conf Config
 
@@ -68,6 +71,16 @@ func Init() {
 		Conf.PgDb,
 	)
 	DbInit(Pgdb)
+
+	CDict, err = gozstd.NewCDictLevel(DictBytes, 19)
+	if err != nil {
+		Logger.Fatal("Could not initialize zstd cdict")
+	}
+
+	DDict, err = gozstd.NewDDict(DictBytes)
+	if err != nil {
+		Logger.Fatal("Could not initialize zstd ddict")
+	}
 }
 
 func ComputeHash(data []byte) (*Hashes, error) {
@@ -113,15 +126,15 @@ func ComputeHash(data []byte) (*Hashes, error) {
 		return nil, errors.Errorf("pHash error: %d", int(code))
 	}
 
-	h.WHash8, code = fastimagehash.WHashMem(data, 8, 0, fastimagehash.Haar)
+	h.WHash8, code = fastimagehash.WHashMem(data, 8, 0, true, fastimagehash.Haar)
 	if code != fastimagehash.Ok {
 		return nil, errors.Errorf("wHash error: %d", int(code))
 	}
-	h.WHash16, code = fastimagehash.WHashMem(data, 16, 0, fastimagehash.Haar)
+	h.WHash16, code = fastimagehash.WHashMem(data, 16, 0, true, fastimagehash.Haar)
 	if code != fastimagehash.Ok {
 		return nil, errors.Errorf("wHash error: %d", int(code))
 	}
-	h.WHash32, code = fastimagehash.WHashMem(data, 32, 0, fastimagehash.Haar)
+	h.WHash32, code = fastimagehash.WHashMem(data, 32, 0, true, fastimagehash.Haar)
 	if code != fastimagehash.Ok {
 		return nil, errors.Errorf("wHash error: %d", int(code))
 	}

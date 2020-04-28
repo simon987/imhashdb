@@ -28,6 +28,11 @@ func dispatchFromQueue(pattern string, queue chan []string) error {
 			continue
 		}
 
+		if len(keys) == 0 {
+			time.Sleep(time.Second * 1)
+			continue
+		}
+
 		rawTask, err := Rdb.BLPop(time.Second*30, keys...).Result()
 		if err != nil {
 			continue
@@ -106,7 +111,7 @@ func trimUrl(link string) string {
 }
 
 func Main() error {
-	queue := make(chan []string, Conf.HasherConcurrency*2)
+	queue := make(chan []string)
 
 	for i := 0; i < Conf.HasherConcurrency; i++ {
 		go worker(queue)
