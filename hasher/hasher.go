@@ -144,11 +144,14 @@ func trimUrl(link string) string {
 	return link
 }
 
-var StoreData = Conf.Store != ""
-var DataPath = Conf.Store
+var StoreData bool
+var DataPath string
 var Pattern = "imhash.*"
 
 func Main() error {
+	StoreData = Conf.Store != ""
+	DataPath = Conf.Store
+
 	queue := make(chan []string)
 
 	for i := 0; i < Conf.HasherConcurrency; i++ {
