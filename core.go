@@ -12,7 +12,6 @@ import (
 	"strings"
 )
 
-const RedisPrefix = "q."
 const UserAgent = "imhashdb/v1.0"
 
 var ImageSuffixes = []string{
@@ -36,6 +35,8 @@ type Config struct {
 
 	HasherConcurrency int
 	QueryConcurrency  int
+
+	Store string
 
 	ImgurClientId string
 	HasherPattern string

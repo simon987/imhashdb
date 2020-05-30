@@ -89,6 +89,13 @@ func main() {
 						EnvVars:     []string{"IMHASHDB_QUERY_CONCURRENCY"},
 						Destination: &Conf.QueryConcurrency,
 					},
+					&cli.StringFlag{
+						Name:        "store",
+						Value:       "",
+						Usage:       "If set, store downloaded images there",
+						EnvVars:     []string{"IMHASHDB_STORE"},
+						Destination: &Conf.Store,
+					},
 				},
 			},
 			{

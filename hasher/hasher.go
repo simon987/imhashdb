@@ -4,8 +4,13 @@ import (
 	"crypto/md5"
 	"crypto/sha1"
 	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"hash/crc32"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -51,6 +56,29 @@ func worker(queue chan []string) {
 	}
 }
 
+func storeData(data []byte, sha1 [20]byte, link string) {
+
+	sha1Str := hex.EncodeToString(sha1[:])
+
+	filename := fmt.Sprintf("%s/%c/%s/",
+		DataPath,
+		sha1Str[0],
+		sha1Str[1:3],
+	)
+	err := os.MkdirAll(filename, 0755)
+	if err != nil {
+		panic(err)
+	}
+	filename += sha1Str + filepath.Ext(link)
+
+	Logger.Debug("Storing image data to file", zap.String("path", filename))
+
+	err = ioutil.WriteFile(filename, data, 0666)
+	if err != nil {
+		panic(err)
+	}
+}
+
 func computeAndStore(rawTask []string) {
 	var task Task
 	err := json.Unmarshal([]byte(rawTask[1]), &task)
@@ -61,7 +89,7 @@ func computeAndStore(rawTask []string) {
 
 	meta := []Meta{{
 		RetrievedAt: time.Now().Unix(),
-		Id:          rawTask[0][len(RedisPrefix):] + "." + strconv.FormatInt(task.Id, 10),
+		Id:          rawTask[0][len(Pattern)-1:] + "." + strconv.FormatInt(task.Id, 10),
 		Meta:        []byte(rawTask[1]),
 	}}
 
@@ -86,11 +114,17 @@ func computeAndStore(rawTask []string) {
 				return
 			}
 
+			sha1sum := sha1.Sum(data)
+
+			if StoreData {
+				storeData(data, sha1sum, link)
+			}
+
 			Store(&Entry{
 				H:      h,
 				Size:   len(data),
 				Sha256: sha256.Sum256(data),
-				Sha1:   sha1.Sum(data),
+				Sha1:   sha1sum,
 				Md5:    md5.Sum(data),
 				Crc32:  crc32.ChecksumIEEE(data),
 				Meta:   meta,
@@ -110,6 +144,10 @@ func trimUrl(link string) string {
 	return link
 }
 
+var StoreData = Conf.Store != ""
+var DataPath = Conf.Store
+var Pattern = "imhash.*"
+
 func Main() error {
 	queue := make(chan []string)
 
@@ -117,5 +155,5 @@ func Main() error {
 		go worker(queue)
 	}
 
-	return dispatchFromQueue("q.reddit.*", queue)
+	return dispatchFromQueue(Pattern, queue)
 }
