@@ -7,7 +7,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/simon987/fastimagehash-go"
 	"github.com/valyala/fasthttp"
-	"github.com/valyala/gozstd"
 	"go.uber.org/zap"
 	"strings"
 )
@@ -46,8 +45,6 @@ var ImageBlackList = []string{}
 
 var Rdb *redis.Client
 var Pgdb *pgx.ConnPool
-var CDict *gozstd.CDict
-var DDict *gozstd.DDict
 var Logger *zap.Logger
 var Conf Config
 
@@ -72,16 +69,6 @@ func Init() {
 		Conf.PgDb,
 	)
 	DbInit(Pgdb)
-
-	CDict, err = gozstd.NewCDictLevel(DictBytes, 19)
-	if err != nil {
-		Logger.Fatal("Could not initialize zstd cdict")
-	}
-
-	DDict, err = gozstd.NewDDict(DictBytes)
-	if err != nil {
-		Logger.Fatal("Could not initialize zstd ddict")
-	}
 }
 
 func ComputeHash(data []byte) (*Hashes, error) {

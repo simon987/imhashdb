@@ -100,9 +100,9 @@ type QueryResp struct {
 }
 
 type Meta struct {
-	RetrievedAt int64  `json:"retrieved_at"`
-	Id          string `json:"id"`
-	Meta        []byte `json:"meta"`
+	RetrievedAt int64       `json:"retrieved_at"`
+	Id          string      `json:"id"`
+	Meta        interface{} `json:"meta"`
 }
 
 type ImageHasMeta struct {

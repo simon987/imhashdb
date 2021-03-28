@@ -10,7 +10,6 @@ import (
 	"github.com/jackc/pgx"
 	"github.com/jackc/pgx/pgtype"
 	"github.com/mailru/easyjson"
-	"github.com/valyala/gozstd"
 	"go.uber.org/zap"
 )
 
@@ -36,19 +35,9 @@ type MatchTrigger struct {
 
 var MatchTriggers = []MatchTrigger{
 	{
-		HashType:    DHash16,
-		MinDistance: 25,
-		Id:          1,
-	},
-	{
 		HashType:    PHash16,
 		MinDistance: 25,
 		Id:          2,
-	},
-	{
-		HashType:    WHash16Haar,
-		MinDistance: 6,
-		Id:          3,
 	},
 }
 
@@ -93,13 +82,11 @@ func Store(entry *Entry) {
 		_, _ = Pgdb.Exec("INSERT INTO hash_whash32haar VALUES ($1, $2) ON CONFLICT DO NOTHING", id, entry.H.WHash32.Bytes)
 	}
 
-	var buf []byte
 	for _, meta := range entry.Meta {
-		compressedMeta := gozstd.CompressDict(buf[:0], meta.Meta, CDict)
 
 		_, err = Pgdb.Exec(
 			"INSERT INTO image_meta (id, retrieved_at, meta) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING",
-			meta.Id, meta.RetrievedAt, compressedMeta,
+			meta.Id, meta.RetrievedAt, meta.Meta,
 		)
 		if err != nil {
 			Logger.Error("Could not insert meta", zap.Error(err))
@@ -228,10 +215,7 @@ func FindImagesByHash(ctx context.Context, hash []byte, hashType HashType, dista
 		for rows.Next() {
 			var ihm ImageHasMeta
 
-			var compressedMeta []byte
-			err := rows.Scan(&ihm.Url, &ihm.Meta.Id, &ihm.Meta.RetrievedAt, &compressedMeta)
-
-			ihm.Meta.Meta, err = gozstd.DecompressDict(nil, compressedMeta, DDict)
+			err := rows.Scan(&ihm.Url, &ihm.Meta.Id, &ihm.Meta.RetrievedAt, &ihm.Meta.Meta)
 			if err != nil {
 				return nil, err
 			}
@@ -259,7 +243,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_image_sha1 ON image(sha1);
 CREATE TABLE IF NOT EXISTS image_meta (
 	retrieved_at bigint NOT NULL,
 	id TEXT PRIMARY KEY,
-	meta bytea NOT NULL
+	meta JSONB NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS image_has_meta (

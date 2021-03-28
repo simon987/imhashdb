@@ -24,6 +24,11 @@ type Task struct {
 	Id   int64    `json:"_id"`
 }
 
+type TaskStringId struct {
+	Urls []string `json:"_urls"`
+	Id   string   `json:"_id"`
+}
+
 func dispatchFromQueue(pattern string, queue chan []string) error {
 
 	for {
@@ -80,20 +85,33 @@ func storeData(data []byte, sha1 [20]byte, link string) {
 }
 
 func computeAndStore(rawTask []string) {
+	var urls []string
+	var taskId string
+
 	var task Task
 	err := json.Unmarshal([]byte(rawTask[1]), &task)
-	if err != nil {
-		Logger.Error("Corrupt task body", zap.String("body", rawTask[1]))
-		return
+	if err == nil {
+		urls = task.Urls
+		taskId = rawTask[0][len(Pattern)-1:] + "." + strconv.FormatInt(task.Id, 10)
+	} else {
+		var taskStringId TaskStringId
+		err := json.Unmarshal([]byte(rawTask[1]), &taskStringId)
+		if err != nil {
+			Logger.Error("Corrupt task body", zap.String("body", rawTask[1]), zap.Error(err))
+			return
+		}
+
+		urls = task.Urls
+		taskId = rawTask[0][len(Pattern)-1:] + "." + taskStringId.Id
 	}
 
 	meta := []Meta{{
 		RetrievedAt: time.Now().Unix(),
-		Id:          rawTask[0][len(Pattern)-1:] + "." + strconv.FormatInt(task.Id, 10),
+		Id:          taskId,
 		Meta:        []byte(rawTask[1]),
 	}}
 
-	for _, link := range task.Urls {
+	for _, link := range urls {
 		for _, turl := range TransformLink(link, &meta) {
 			if !IsImageLink(turl) {
 				Logger.Debug("Ignoring non-image URL", zap.String("link", link))

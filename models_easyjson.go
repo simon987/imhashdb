@@ -29,7 +29,7 @@ func easyjsonD2b7633eDecodeGithubComSimon987Imhashdb(in *jlexer.Lexer, out *Quer
 	}
 	in.Delim('{')
 	for !in.IsDelim('}') {
-		key := in.UnsafeString()
+		key := in.UnsafeFieldName(false)
 		in.WantColon()
 		if in.IsNull() {
 			in.Skip()
@@ -96,7 +96,7 @@ func easyjsonD2b7633eDecodeGithubComSimon987Imhashdb1(in *jlexer.Lexer, out *Que
 	}
 	in.Delim('{')
 	for !in.IsDelim('}') {
-		key := in.UnsafeString()
+		key := in.UnsafeFieldName(false)
 		in.WantColon()
 		if in.IsNull() {
 			in.Skip()
@@ -195,7 +195,7 @@ func easyjsonD2b7633eDecodeGithubComSimon987Imhashdb2(in *jlexer.Lexer, out *Met
 	}
 	in.Delim('{')
 	for !in.IsDelim('}') {
-		key := in.UnsafeString()
+		key := in.UnsafeFieldName(false)
 		in.WantColon()
 		if in.IsNull() {
 			in.Skip()
@@ -208,11 +208,12 @@ func easyjsonD2b7633eDecodeGithubComSimon987Imhashdb2(in *jlexer.Lexer, out *Met
 		case "id":
 			out.Id = string(in.String())
 		case "meta":
-			if in.IsNull() {
-				in.Skip()
-				out.Meta = nil
+			if m, ok := out.Meta.(easyjson.Unmarshaler); ok {
+				m.UnmarshalEasyJSON(in)
+			} else if m, ok := out.Meta.(json.Unmarshaler); ok {
+				_ = m.UnmarshalJSON(in.Raw())
 			} else {
-				out.Meta = in.Bytes()
+				out.Meta = in.Interface()
 			}
 		default:
 			in.SkipRecursive()
@@ -241,7 +242,13 @@ func easyjsonD2b7633eEncodeGithubComSimon987Imhashdb2(out *jwriter.Writer, in Me
 	{
 		const prefix string = ",\"meta\":"
 		out.RawString(prefix)
-		out.Base64Bytes(in.Meta)
+		if m, ok := in.Meta.(easyjson.Marshaler); ok {
+			m.MarshalEasyJSON(out)
+		} else if m, ok := in.Meta.(json.Marshaler); ok {
+			out.Raw(m.MarshalJSON())
+		} else {
+			out.Raw(json.Marshal(in.Meta))
+		}
 	}
 	out.RawByte('}')
 }
@@ -280,7 +287,7 @@ func easyjsonD2b7633eDecodeGithubComSimon987Imhashdb3(in *jlexer.Lexer, out *Ima
 	}
 	in.Delim('{')
 	for !in.IsDelim('}') {
-		key := in.UnsafeString()
+		key := in.UnsafeFieldName(false)
 		in.WantColon()
 		if in.IsNull() {
 			in.Skip()
@@ -304,17 +311,17 @@ func easyjsonD2b7633eDecodeGithubComSimon987Imhashdb3(in *jlexer.Lexer, out *Ima
 					out.Images = (out.Images)[:0]
 				}
 				for !in.IsDelim(']') {
-					var v7 *Image
+					var v4 *Image
 					if in.IsNull() {
 						in.Skip()
-						v7 = nil
+						v4 = nil
 					} else {
-						if v7 == nil {
-							v7 = new(Image)
+						if v4 == nil {
+							v4 = new(Image)
 						}
-						(*v7).UnmarshalEasyJSON(in)
+						(*v4).UnmarshalEasyJSON(in)
 					}
-					out.Images = append(out.Images, v7)
+					out.Images = append(out.Images, v4)
 					in.WantComma()
 				}
 				in.Delim(']')
@@ -340,14 +347,14 @@ func easyjsonD2b7633eEncodeGithubComSimon987Imhashdb3(out *jwriter.Writer, in Im
 			out.RawString("null")
 		} else {
 			out.RawByte('[')
-			for v8, v9 := range in.Images {
-				if v8 > 0 {
+			for v5, v6 := range in.Images {
+				if v5 > 0 {
 					out.RawByte(',')
 				}
-				if v9 == nil {
+				if v6 == nil {
 					out.RawString("null")
 				} else {
-					(*v9).MarshalEasyJSON(out)
+					(*v6).MarshalEasyJSON(out)
 				}
 			}
 			out.RawByte(']')
@@ -390,7 +397,7 @@ func easyjsonD2b7633eDecodeGithubComSimon987Imhashdb4(in *jlexer.Lexer, out *Ima
 	}
 	in.Delim('{')
 	for !in.IsDelim('}') {
-		key := in.UnsafeString()
+		key := in.UnsafeFieldName(false)
 		in.WantColon()
 		if in.IsNull() {
 			in.Skip()
@@ -463,7 +470,7 @@ func easyjsonD2b7633eDecodeGithubComSimon987Imhashdb5(in *jlexer.Lexer, out *Ima
 	}
 	in.Delim('{')
 	for !in.IsDelim('}') {
-		key := in.UnsafeString()
+		key := in.UnsafeFieldName(false)
 		in.WantColon()
 		if in.IsNull() {
 			in.Skip()
@@ -512,9 +519,9 @@ func easyjsonD2b7633eDecodeGithubComSimon987Imhashdb5(in *jlexer.Lexer, out *Ima
 					out.Meta = (out.Meta)[:0]
 				}
 				for !in.IsDelim(']') {
-					var v13 ImageHasMeta
-					(v13).UnmarshalEasyJSON(in)
-					out.Meta = append(out.Meta, v13)
+					var v10 ImageHasMeta
+					(v10).UnmarshalEasyJSON(in)
+					out.Meta = append(out.Meta, v10)
 					in.WantComma()
 				}
 				in.Delim(']')
@@ -565,11 +572,11 @@ func easyjsonD2b7633eEncodeGithubComSimon987Imhashdb5(out *jwriter.Writer, in Im
 			out.RawString("null")
 		} else {
 			out.RawByte('[')
-			for v20, v21 := range in.Meta {
-				if v20 > 0 {
+			for v17, v18 := range in.Meta {
+				if v17 > 0 {
 					out.RawByte(',')
 				}
-				(v21).MarshalEasyJSON(out)
+				(v18).MarshalEasyJSON(out)
 			}
 			out.RawByte(']')
 		}
@@ -611,7 +618,7 @@ func easyjsonD2b7633eDecodeGithubComSimon987Imhashdb6(in *jlexer.Lexer, out *Has
 	}
 	in.Delim('{')
 	for !in.IsDelim('}') {
-		key := in.UnsafeString()
+		key := in.UnsafeFieldName(false)
 		in.WantColon()
 		if in.IsNull() {
 			in.Skip()
@@ -898,7 +905,7 @@ func easyjsonD2b7633eDecodeGithubComSimon987FastimagehashGo(in *jlexer.Lexer, ou
 	}
 	in.Delim('{')
 	for !in.IsDelim('}') {
-		key := in.UnsafeString()
+		key := in.UnsafeFieldName(false)
 		in.WantColon()
 		if in.IsNull() {
 			in.Skip()
@@ -952,7 +959,7 @@ func easyjsonD2b7633eDecodeGithubComSimon987Imhashdb7(in *jlexer.Lexer, out *Has
 	}
 	in.Delim('{')
 	for !in.IsDelim('}') {
-		key := in.UnsafeString()
+		key := in.UnsafeFieldName(false)
 		in.WantColon()
 		if in.IsNull() {
 			in.Skip()
